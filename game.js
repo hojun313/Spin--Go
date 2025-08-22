@@ -17,6 +17,13 @@ joystickCanvas.height = 600;
 let stage = 1;
 let stageStartTime = Date.now();
 
+// 단계별 맵 디자인
+const stageDesigns = [
+    { exitDir: 'n' }, // Stage 1
+    { exitDir: 'e' }, // Stage 2
+    { exitDir: 's' }, // Stage 3
+    { exitDir: 'w' }  // Stage 4
+];
 
 // 맵 설정
 const map = {
@@ -66,21 +73,22 @@ const joystick = {
     touchY: 0
 };
 
-
 function generateMap() {
     console.log(`Generating map for stage ${stage}`);
     map.corridors = [];
     const corridorWidth = 100;
     const corridorLength = 1000;
-    const exitLength = 150;
+    const exitLength = 10;
 
     // 기본 복도 생성
     map.corridors.push({ x: map.centerX - corridorWidth / 2, y: map.centerY - corridorLength / 2, width: corridorWidth, height: corridorLength });
     map.corridors.push({ x: map.centerX - corridorLength / 2, y: map.centerY - corridorWidth / 2, width: corridorLength, height: corridorWidth });
 
     // 출구 생성
-    const directions = ['n', 's', 'w', 'e'];
-    const exitDir = directions[Math.floor(Math.random() * directions.length)];
+    const designIndex = Math.min(stage - 1, stageDesigns.length - 1);
+    const design = stageDesigns[designIndex];
+    const exitDir = design.exitDir;
+
     console.log(`Generating EXIT to the ${exitDir}`);
     let exit;
     const halfCorridor = corridorLength / 2;
@@ -106,6 +114,7 @@ function drawMap() {
 }
 
 function drawObstacle() {
+    if (stage < 2) return;
     ctx.save();
     ctx.translate(obstacle.x, obstacle.y);
     ctx.rotate(obstacle.angle);
@@ -144,12 +153,14 @@ function isPositionValid(x, y, size) {
 }
 
 function updateObstacle() {
+    if (stage < 2) return;
     obstacle.x = map.centerX;
     obstacle.y = map.centerY;
     obstacle.angle += obstacle.speed + (stage - 1) * 0.005; // 스테이지에 따라 속도 증가
 }
 
 function checkCollision() {
+    if (stage < 2) return;
     if (map.centerX !== obstacle.x || map.centerY !== obstacle.y) return;
 
     const playerRadius = player.size / 2;
@@ -177,10 +188,15 @@ function checkCollision() {
 }
 
 function handleCollision() {
-    console.log("Collision! Resetting player position.");
+    console.log("Collision! Resetting to Stage 1.");
+    stage = 1;
+    stageStartTime = Date.now();
+    map.centerX = 0;
+    map.centerY = 0;
     player.x = map.centerX - 200;
     player.y = map.centerY;
     obstacle.angle = 0;
+    generateMap();
 }
 
 function checkStageCompletion() {
@@ -196,8 +212,6 @@ function checkStageCompletion() {
             
             console.log("Stage complete!");
             stage++;
-            player.x = map.centerX - 200;
-            player.y = map.centerY;
             generateMap();
         }
     }
@@ -299,7 +313,7 @@ function handleJoystickMove(x, y) {
 
     const dx = joystick.touchX - joystick.x;
     const dy = joystick.touchY - joystick.y;
-    const angle = Math.atan2(dy, dx);
+    const angle = Math.atane;
     const distance = Math.sqrt(dx*dx + dy*dy);
 
     keys.w = false;
