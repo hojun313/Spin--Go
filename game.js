@@ -17,13 +17,7 @@ joystickCanvas.height = 600;
 let stage = 1;
 let stageStartTime = Date.now();
 
-// 단계별 맵 디자인
-const stageDesigns = [
-    { exitDir: 'n' }, // Stage 1
-    { exitDir: 'e' }, // Stage 2
-    { exitDir: 's' }, // Stage 3
-    { exitDir: 'w' }  // Stage 4
-];
+
 
 // 맵 설정
 const map = {
@@ -73,21 +67,26 @@ const joystick = {
     touchY: 0
 };
 
-function generateMap() {
+function generateMap(previousExitDir = null) {
     console.log(`Generating map for stage ${stage}`);
     map.corridors = [];
     const corridorWidth = 100;
     const corridorLength = 1000;
-    const exitLength = 10;
+    const exitLength = 5;
 
     // 기본 복도 생성
     map.corridors.push({ x: map.centerX - corridorWidth / 2, y: map.centerY - corridorLength / 2, width: corridorWidth, height: corridorLength });
     map.corridors.push({ x: map.centerX - corridorLength / 2, y: map.centerY - corridorWidth / 2, width: corridorLength, height: corridorWidth });
 
     // 출구 생성
-    const designIndex = Math.min(stage - 1, stageDesigns.length - 1);
-    const design = stageDesigns[designIndex];
-    const exitDir = design.exitDir;
+    let possibleDirections = ['n', 's', 'w', 'e'];
+    if (previousExitDir) {
+        let oppositeDir = { n: 's', s: 'n', w: 'e', e: 'w' };
+        let playerEntranceDir = oppositeDir[previousExitDir];
+        possibleDirections = possibleDirections.filter(dir => dir !== playerEntranceDir);
+    }
+    
+    const exitDir = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
 
     console.log(`Generating EXIT to the ${exitDir}`);
     let exit;
@@ -212,7 +211,15 @@ function checkStageCompletion() {
             
             console.log("Stage complete!");
             stage++;
-            generateMap();
+            
+            let enteredExitDir;
+            // Deducing direction based on geometry
+            if (exit.y < map.centerY) enteredExitDir = 'n';
+            else if (exit.y > map.centerY) enteredExitDir = 's';
+            else if (exit.x < map.centerX) enteredExitDir = 'w';
+            else enteredExitDir = 'e';
+
+            generateMap(enteredExitDir); // Pass the direction of the exit just used
         }
     }
 }
@@ -313,7 +320,7 @@ function handleJoystickMove(x, y) {
 
     const dx = joystick.touchX - joystick.x;
     const dy = joystick.touchY - joystick.y;
-    const angle = Math.atane;
+    const angle = Math.atan2(dy, dx);
     const distance = Math.sqrt(dx*dx + dy*dy);
 
     keys.w = false;
