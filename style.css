@@ -8,9 +8,38 @@ body {
     height: 100vh;
     margin: 0;
     font-family: sans-serif;
+    overflow: hidden; /* Prevent scrollbars */
+}
+
+#canvas-container {
+    position: relative;
+    width: 800px;
+    height: 600px;
 }
 
 canvas {
+    box-sizing: border-box; /* Include border in size */
+}
+
+#gameCanvas {
     background-color: #000;
     border: 2px solid #eee;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+#joystickCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    background-color: transparent;
+    border: none; /* Joystick canvas shouldn't have a border */
+}
+
+
+h1 {
+    margin-bottom: 20px;
 }
