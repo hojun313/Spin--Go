@@ -49,6 +49,16 @@ const obstacle = {
     color: '#ff0000'
 };
 
+const rotationSpeeds = [
+    0,      // Index 0 (unused, or for a hypothetical stage 0)
+    0,      // Stage 1: No rotation
+    0,      // Stage 2: No rotation
+    0.03,   // Stage 3: Base speed (0.02) + (3-1)*0.005 = 0.03
+    0.035,  // Stage 4: Base speed (0.02) + (4-1)*0.005 = 0.035
+    0.04,   // Stage 5: Base speed (0.02) + (5-1)*0.005 = 0.04
+    0.045   // Stage 6: Base speed (0.02) + (6-1)*0.005 = 0.045
+];
+
 // 키 입력 상태
 const keys = {
     w: false, a: false, s: false, d: false
@@ -81,9 +91,7 @@ function generateMap(previousExitDir = null) {
     // 출구 생성
     let possibleDirections = ['n', 's', 'w', 'e'];
     if (previousExitDir) {
-        let oppositeDir = { n: 's', s: 'n', w: 'e', e: 'w' };
-        let playerEntranceDir = oppositeDir[previousExitDir];
-        possibleDirections = possibleDirections.filter(dir => dir !== playerEntranceDir);
+        possibleDirections = possibleDirections.filter(dir => dir !== previousExitDir);
     }
     
     const exitDir = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
@@ -155,7 +163,9 @@ function updateObstacle() {
     if (stage < 2) return;
     obstacle.x = map.centerX;
     obstacle.y = map.centerY;
-    obstacle.angle += obstacle.speed + (stage - 1) * 0.005; // 스테이지에 따라 속도 증가
+
+    let currentRotationSpeed = rotationSpeeds[stage] || 0; // Get speed from array, default to 0 if stage is out of bounds
+    obstacle.angle += currentRotationSpeed;
 }
 
 function checkCollision() {
