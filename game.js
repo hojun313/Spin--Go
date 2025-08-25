@@ -156,11 +156,17 @@ function drawObstacle() {
 function drawHUD() {
     ctx.fillStyle = '#fff';
     ctx.font = '24px sans-serif';
+
+    // Left-aligned text
     ctx.textAlign = 'left';
     ctx.fillText(`Stage: ${stage}`, 20, 40);
 
     const elapsedTime = ((Date.now() - stageStartTime) / 1000).toFixed(2);
     ctx.fillText(`Time: ${elapsedTime}`, 20, 70);
+
+    // Right-aligned text for player speed
+    ctx.textAlign = 'right';
+    ctx.fillText(`Speed: ${player.speed.toFixed(1)}`, canvas.width - 20, 40);
 }
 
 
@@ -346,6 +352,22 @@ window.addEventListener('keyup', (e) => {
     if (key === 's' || key === 'arrowdown') keys.s = false;
     if (key === 'a' || key === 'arrowleft') keys.a = false;
     if (key === 'd' || key === 'arrowright') keys.d = false;
+});
+
+// Mouse wheel control for player speed
+window.addEventListener('wheel', (e) => {
+    e.preventDefault(); // Prevent page scrolling
+
+    const speedChange = 0.1;
+    const minSpeed = 0;
+    const maxSpeed = 5;
+
+    if (e.deltaY < 0) { // Scrolling up
+        player.speed = Math.min(maxSpeed, player.speed + speedChange);
+    } else { // Scrolling down
+        player.speed = Math.max(minSpeed, player.speed - speedChange);
+    }
+    console.log(`Player speed: ${player.speed.toFixed(1)}`);
 });
 
 // Joystick controls
