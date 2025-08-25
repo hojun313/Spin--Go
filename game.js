@@ -42,20 +42,18 @@ const player = {
 const obstacle = {
     x: 0,
     y: 0,
-    length: 90,
-    thickness: 10,
     angle: 0,
     color: '#ff0000'
 };
 
 const stageObstacles = [
-    { wings: 0, speed: 0 }, // Stage 0 (not used)
-    { wings: 0, speed: 0 }, // Stage 1
-    { wings: 2, speed: 0 }, // Stage 2
-    { wings: 2, speed: 0.03 }, // Stage 3
-    { wings: 3, speed: 0.035 }, // Stage 4
-    { wings: 4, speed: 0.04 }, // Stage 5
-    { wings: 6, speed: 0.045 }  // Stage 6
+    { wings: 0, speed: 0, length: 0, thickness: 0 }, // Stage 0 (not used)
+    { wings: 0, speed: 0, length: 90, thickness: 1 }, // Stage 1
+    { wings: 2, speed: 0, length: 90, thickness: 2 }, // Stage 2
+    { wings: 2, speed: 0.03, length: 90, thickness: 3 }, // Stage 3
+    { wings: 3, speed: 0.035, length: 90, thickness: 4 }, // Stage 4
+    { wings: 4, speed: 0.04, length: 90, thickness: 5 }, // Stage 5
+    { wings: 6, speed: 0.045, length: 90, thickness: 6 }  // Stage 6
 ];
 
 // 키 입력 상태
@@ -90,9 +88,12 @@ function generateMap(previousExitDir = null) {
     // 출구 생성
     let possibleDirections = ['n', 's', 'w', 'e'];
     if (previousExitDir) {
-        possibleDirections = possibleDirections.filter(dir => dir !== previousExitDir);
+        if (previousExitDir === 'n') possibleDirections = ['s', 'w', 'e'];
+        if (previousExitDir === 's') possibleDirections = ['n', 'w', 'e'];
+        if (previousExitDir === 'w') possibleDirections = ['n', 's', 'e'];
+        if (previousExitDir === 'e') possibleDirections = ['n', 's', 'w'];
     }
-    
+
     const exitDir = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
 
     console.log(`Generating EXIT to the ${exitDir}`);
@@ -131,7 +132,7 @@ function drawObstacle() {
     for (let i = 0; i < stageConfig.wings; i++) {
         ctx.save();
         ctx.rotate((i * 2 * Math.PI) / stageConfig.wings);
-        ctx.fillRect(0, -obstacle.thickness / 2, obstacle.length / 2, obstacle.thickness);
+        ctx.fillRect(0, -stageConfig.thickness / 2, stageConfig.length / 2, stageConfig.thickness);
         ctx.restore();
     }
 
@@ -184,7 +185,7 @@ function checkCollision() {
     if (map.centerX !== obstacle.x || map.centerY !== obstacle.y) return;
 
     const playerRadius = player.size / 2;
-    const lineLength = obstacle.length / 2;
+    const lineLength = stageConfig.length / 2;
 
     for (let i = 0; i < stageConfig.wings; i++) {
         const wingAngle = obstacle.angle + (i * 2 * Math.PI) / stageConfig.wings;
