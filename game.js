@@ -35,7 +35,7 @@ const player = {
     x: map.centerX - 200,
     y: map.centerY,
     size: 20,
-    speed: 4,
+    speed: 2,
     color: '#00ff00'
 };
 
@@ -48,13 +48,27 @@ const obstacle = {
 };
 
 const stageObstacles = [
-    { wings: 0, speed: 0, length: 0, thickness: 0 }, // Stage 0 (not used)
-    { wings: 0, speed: 0, length: 90, thickness: 1 }, // Stage 1
-    { wings: 2, speed: 0, length: 90, thickness: 2 }, // Stage 2
-    { wings: 2, speed: 0.03, length: 90, thickness: 3 }, // Stage 3
-    { wings: 3, speed: 0.035, length: 90, thickness: 4 }, // Stage 4
-    { wings: 4, speed: 0.04, length: 90, thickness: 5 }, // Stage 5
-    { wings: 6, speed: 0.045, length: 90, thickness: 6 }  // Stage 6
+    { wings: 0, speed: 0,    length: 0,   thickness: 0 },  // Stage 0 (not used)
+    { wings: 2, speed: 0.01, length: 250, thickness: 2 },  // Stage 1: 기본 패턴 익히기
+    { wings: 2, speed: 0.01, length: 300, thickness: 2 },  // Stage 2: 장애물 길이 증가
+    { wings: 3, speed: 0.01, length: 250, thickness: 2 },  // Stage 3: 장애물 개수 증가
+    { wings: 3, speed: 0.015,length: 250, thickness: 3 },  // Stage 4: 속도와 두께 소폭 증가
+    { wings: 4, speed: 0.015,length: 280, thickness: 3 },  // Stage 5: 개수와 길이 동시 증가, 첫 번째 고비
+    { wings: 3, speed: 0.02, length: 250, thickness: 3 },  // Stage 6: 개수를 줄이고 속도를 높여 새로운 패턴 제시
+    { wings: 4, speed: 0.02, length: 300, thickness: 4 },  // Stage 7: 전체적인 난이도 상승
+    { wings: 5, speed: 0.02, length: 250, thickness: 4 },  // Stage 8: 장애물 개수로 압박감 증가
+    { wings: 5, speed: 0.025,length: 280, thickness: 4 },  // Stage 9: 속도와 길이 증가로 난이도 상승
+    { wings: 6, speed: 0.025,length: 300, thickness: 5 },  // Stage 10: 중반부의 어려운 스테이지
+    { wings: 4, speed: 0.03, length: 250, thickness: 5 },  // Stage 11: 빠른 속도에 대한 적응 훈련
+    { wings: 5, speed: 0.03, length: 280, thickness: 5 },  // Stage 12: 속도와 개수의 조합
+    { wings: 6, speed: 0.03, length: 320, thickness: 6 },  // Stage 13: 전체적으로 높은 난이도
+    { wings: 7, speed: 0.03, length: 250, thickness: 6 },  // Stage 14: 개수를 늘려 빈틈 찾기 어렵게 만듦
+    { wings: 8, speed: 0.035,length: 300, thickness: 6 },  // Stage 15: 후반부의 첫 번째 고비, 상당한 난이도
+    { wings: 6, speed: 0.04, length: 280, thickness: 7 },  // Stage 16: 매우 빠른 속도로 순발력 테스트
+    { wings: 7, speed: 0.04, length: 300, thickness: 7 },  // Stage 17: 속도와 개수의 압박
+    { wings: 8, speed: 0.04, length: 320, thickness: 8 },  // Stage 18: 높은 수준의 집중력 요구
+    { wings: 9, speed: 0.045,length: 300, thickness: 8 },  // Stage 19: 거의 최대치에 가까운 개수와 속도
+    { wings: 10,speed: 0.05, length: 350, thickness: 10}  // Stage 20: 최종 보스 스테이지, 극한의 난이도
 ];
 
 // 키 입력 상태
@@ -78,7 +92,7 @@ const joystick = {
 function generateMap() {
     console.log(`[generateMap] Called for stage ${stage}`);
     map.corridors = [];
-    const corridorWidth = 100;
+    const corridorWidth = 200;
     const corridorLength = 1000;
     const exitLength = 5;
 
