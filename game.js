@@ -16,6 +16,7 @@ joystickCanvas.height = 600;
 // 게임 상태 변수
 let stage = 1;
 let stageStartTime = Date.now();
+let lastExitDirection = null;
 
 
 
@@ -74,8 +75,8 @@ const joystick = {
     touchY: 0
 };
 
-function generateMap(previousExitDir = null) {
-    console.log(`Generating map for stage ${stage}`);
+function generateMap() {
+    console.log(`[generateMap] Called for stage ${stage}`);
     map.corridors = [];
     const corridorWidth = 100;
     const corridorLength = 1000;
@@ -87,16 +88,15 @@ function generateMap(previousExitDir = null) {
 
     // 출구 생성
     let possibleDirections = ['n', 's', 'w', 'e'];
-    if (previousExitDir) {
-        if (previousExitDir === 'n') possibleDirections = ['s', 'w', 'e'];
-        if (previousExitDir === 's') possibleDirections = ['n', 'w', 'e'];
-        if (previousExitDir === 'w') possibleDirections = ['n', 's', 'e'];
-        if (previousExitDir === 'e') possibleDirections = ['n', 's', 'w'];
+    if (lastExitDirection) {
+        possibleDirections = possibleDirections.filter(dir => dir !== lastExitDirection);
     }
-
+    console.log(`[generateMap] Possible directions after filter (excluding ${lastExitDirection}): ${possibleDirections}`);
+    
     const exitDir = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
+    lastExitDirection = exitDir; // Update lastExitDirection with the newly chosen exit
 
-    console.log(`Generating EXIT to the ${exitDir}`);
+    console.log(`[generateMap] Generating EXIT to the ${exitDir}. New lastExitDirection: ${lastExitDirection}`);
     let exit;
     const halfCorridor = corridorLength / 2;
     if (exitDir === 'n') exit = { x: map.centerX - corridorWidth / 2, y: map.centerY - halfCorridor - exitLength, width: corridorWidth, height: exitLength, isExit: true };
@@ -242,14 +242,7 @@ function checkStageCompletion() {
             console.log("Stage complete!");
             stage++;
             
-            let enteredExitDir;
-            // Deducing direction based on geometry
-            if (exit.y < map.centerY) enteredExitDir = 'n';
-            else if (exit.y > map.centerY) enteredExitDir = 's';
-            else if (exit.x < map.centerX) enteredExitDir = 'w';
-            else enteredExitDir = 'e';
-
-            generateMap(enteredExitDir); // Pass the direction of the exit just used
+            generateMap();
         }
     }
 }
