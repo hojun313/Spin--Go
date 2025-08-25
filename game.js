@@ -32,7 +32,7 @@ generateMap();
 
 // 플레이어 설정
 const player = {
-    x: map.centerX - 200,
+    x: map.centerX - 300,
     y: map.centerY,
     size: 20,
     speed: 2,
@@ -49,26 +49,40 @@ const obstacle = {
 
 const stageObstacles = [
     { wings: 0, speed: 0,    length: 0,   thickness: 0 },  // Stage 0 (not used)
-    { wings: 2, speed: 0.01, length: 250, thickness: 2 },  // Stage 1: 기본 패턴 익히기
-    { wings: 2, speed: 0.01, length: 300, thickness: 2 },  // Stage 2: 장애물 길이 증가
-    { wings: 3, speed: 0.01, length: 250, thickness: 2 },  // Stage 3: 장애물 개수 증가
-    { wings: 3, speed: 0.015,length: 250, thickness: 3 },  // Stage 4: 속도와 두께 소폭 증가
-    { wings: 4, speed: 0.015,length: 280, thickness: 3 },  // Stage 5: 개수와 길이 동시 증가, 첫 번째 고비
-    { wings: 3, speed: 0.02, length: 250, thickness: 3 },  // Stage 6: 개수를 줄이고 속도를 높여 새로운 패턴 제시
-    { wings: 4, speed: 0.02, length: 300, thickness: 4 },  // Stage 7: 전체적인 난이도 상승
-    { wings: 5, speed: 0.02, length: 250, thickness: 4 },  // Stage 8: 장애물 개수로 압박감 증가
-    { wings: 5, speed: 0.025,length: 280, thickness: 4 },  // Stage 9: 속도와 길이 증가로 난이도 상승
-    { wings: 6, speed: 0.025,length: 300, thickness: 5 },  // Stage 10: 중반부의 어려운 스테이지
-    { wings: 4, speed: 0.03, length: 250, thickness: 5 },  // Stage 11: 빠른 속도에 대한 적응 훈련
-    { wings: 5, speed: 0.03, length: 280, thickness: 5 },  // Stage 12: 속도와 개수의 조합
-    { wings: 6, speed: 0.03, length: 320, thickness: 6 },  // Stage 13: 전체적으로 높은 난이도
-    { wings: 7, speed: 0.03, length: 250, thickness: 6 },  // Stage 14: 개수를 늘려 빈틈 찾기 어렵게 만듦
-    { wings: 8, speed: 0.035,length: 300, thickness: 6 },  // Stage 15: 후반부의 첫 번째 고비, 상당한 난이도
-    { wings: 6, speed: 0.04, length: 280, thickness: 7 },  // Stage 16: 매우 빠른 속도로 순발력 테스트
-    { wings: 7, speed: 0.04, length: 300, thickness: 7 },  // Stage 17: 속도와 개수의 압박
-    { wings: 8, speed: 0.04, length: 320, thickness: 8 },  // Stage 18: 높은 수준의 집중력 요구
-    { wings: 9, speed: 0.045,length: 300, thickness: 8 },  // Stage 19: 거의 최대치에 가까운 개수와 속도
-    { wings: 10,speed: 0.05, length: 350, thickness: 10}  // Stage 20: 최종 보스 스테이지, 극한의 난이도
+    
+    
+
+    // --- 파트 1: 기본기 학습 (전체적인 난이도: 하) ---
+    { wings: 2, speed: 0.01, length: 250, thickness: 3 },  // Stage 1: 기본 중의 기본
+    { wings: 3, speed: 0.01, length: 280, thickness: 5 },  // Stage 2: 날개와 두께의 첫 경험
+    { wings: 4, speed: 0.015,length: 300, thickness: 6 },  // Stage 3: [속도 상승] & 날개 추가. 첫 번째 벽
+    { wings: 2, speed: 0.015,length: 350, thickness: 8 },  // Stage 4: [완급 조절] 날개를 줄여 속도에 적응할 시간 제공
+
+    // --- 파트 2: 기술 연마 (전체적인 난이도: 중) ---
+    { wings: 5, speed: 0.015,length: 320, thickness: 7 },  // Stage 5: 본격적인 압박 시작
+    { wings: 6, speed: 0.02, length: 340, thickness: 9 },  // Stage 6: [속도 상승] & 6개 날개. 중반부의 시작
+    { wings: 4, speed: 0.02, length: 300, thickness: 12},  // Stage 7: [기술 점검 #1 - 정교함] 날개는 적지만, 두꺼운 벽 사이를 통과
+    { wings: 6, speed: 0.02, length: 380, thickness: 10},  // Stage 8: 다시 일반적인 고난도 스테이지로 복귀
+
+    // --- 파트 3: 한계 돌파 (전체적인 난이도: 상) ---
+    { wings: 5, speed: 0.025,length: 350, thickness: 13},  // Stage 9: [속도 상승] & 다시 패턴 변화
+    { wings: 6, speed: 0.025,length: 400, thickness: 15},  // Stage 10: [길이 400 제한 적용] 길이로 압도하는 후반부 스테이지
+    { wings: 3, speed: 0.025,length: 300, thickness: 20},  // Stage 11: [기술 점검 #2 - 집중력] 날개는 단 3개, 하지만 최대 두께의 벽
+    { wings: 6, speed: 0.025,length: 400, thickness: 16},  // Stage 12: [길이 400 제한 적용] 최대 두께 이후 찾아오는 평범한(?) 고난도 스테이지
+
+    // --- 파트 4: 최종장 (전체적인 난이도: 최상) ---
+    { wings: 4, speed: 0.03, length: 400, thickness: 14},  // Stage 13: [최고 속도] & [기술 점검 #3 - 순발력] 날개와 두께를 줄여 최고 속도에 집중
+    { wings: 6, speed: 0.03, length: 380, thickness: 17},  // Stage 14: 최고 속도와 6개 날개의 조합
+    { wings: 5, speed: 0.03, length: 400, thickness: 20},  // Stage 15: [길이 400 제한 적용] 두꺼운 장애물이 최고 속도로 덮쳐오는 압박
+    { wings: 6, speed: 0.03, length: 400, thickness: 20},  // Stage 16: [길이 400 제한 적용] 최종 보스 직전, 6개 날개의 모든 것을 담은 스테이지
+    
+    // --- 보너스/히든 스테이지 제안 ---
+    { wings: 1, speed: 0.2, length: 175, thickness: 20},  // Stage 17 (히든): [바늘구멍] 단 하나의 장애물이지만, 통과할 수 있는가?
+    { wings: 12, speed: 0.003, length: 400, thickness: 2 },  // Stage 18 (히든): [느림의 미학] [길이 400 제한 적용] 느리지만, 끝없이 길고 촘촘한 장애물
+    
+    // --- 최종 보스 ---
+    { wings: 6, speed: 0.03, length: 400, thickness: 20},  // Stage 19: [길이 400 제한 적용] 사실상 최종 보스. 6개 날개의 극한
+    { wings: 7, speed: 0.03, length: 400, thickness: 20}   // Stage 20: [길이 400 제한 적용] [최종 보스] 모든 것이 최대치, 그리고 미지의 7번째 날개
 ];
 
 // 키 입력 상태
@@ -92,7 +106,7 @@ const joystick = {
 function generateMap() {
     console.log(`[generateMap] Called for stage ${stage}`);
     map.corridors = [];
-    const corridorWidth = 200;
+    const corridorWidth = 150;
     const corridorLength = 1000;
     const exitLength = 5;
 
@@ -242,7 +256,7 @@ function handleCollision() {
     stageStartTime = Date.now();
     map.centerX = 0;
     map.centerY = 0;
-    player.x = map.centerX - 200;
+    player.x = map.centerX - 300;
     player.y = map.centerY;
     obstacle.angle = 0;
     generateMap();
