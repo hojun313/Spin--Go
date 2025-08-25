@@ -55,7 +55,7 @@ const stageObstacles = [
     { wings: 2, speed: 0.03 }, // Stage 3
     { wings: 3, speed: 0.035 }, // Stage 4
     { wings: 4, speed: 0.04 }, // Stage 5
-    { wings: 4, speed: 0.045 }  // Stage 6
+    { wings: 6, speed: 0.045 }  // Stage 6
 ];
 
 // 키 입력 상태
@@ -131,7 +131,7 @@ function drawObstacle() {
     for (let i = 0; i < stageConfig.wings; i++) {
         ctx.save();
         ctx.rotate((i * 2 * Math.PI) / stageConfig.wings);
-        ctx.fillRect(-obstacle.length / 2, -obstacle.thickness / 2, obstacle.length, obstacle.thickness);
+        ctx.fillRect(0, -obstacle.thickness / 2, obstacle.length / 2, obstacle.thickness);
         ctx.restore();
     }
 
@@ -178,30 +178,40 @@ function updateObstacle() {
 }
 
 function checkCollision() {
-    if (stage < 2) return;
+    const stageConfig = stageObstacles[stage] || stageObstacles[0];
+    if (stageConfig.wings === 0) return;
+
     if (map.centerX !== obstacle.x || map.centerY !== obstacle.y) return;
 
     const playerRadius = player.size / 2;
-    const lineHalfLength = obstacle.length / 2;
+    const lineLength = obstacle.length / 2;
 
-    const p1 = { x: obstacle.x + Math.cos(obstacle.angle) * lineHalfLength, y: obstacle.y + Math.sin(obstacle.angle) * lineHalfLength };
-    const p2 = { x: obstacle.x - Math.cos(obstacle.angle) * lineHalfLength, y: obstacle.y - Math.sin(obstacle.angle) * lineHalfLength };
+    for (let i = 0; i < stageConfig.wings; i++) {
+        const wingAngle = obstacle.angle + (i * 2 * Math.PI) / stageConfig.wings;
 
-    const l2 = Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
-    if (l2 === 0) {
-        const dist2 = Math.pow(player.x - p1.x, 2) + Math.pow(player.y - p1.y, 2);
-        if (dist2 < playerRadius * playerRadius) handleCollision();
-        return;
-    }
+        const p1 = { x: obstacle.x, y: obstacle.y };
+        const p2 = { x: obstacle.x + Math.cos(wingAngle) * lineLength, y: obstacle.y + Math.sin(wingAngle) * lineLength };
 
-    let t = ((player.x - p1.x) * (p2.x - p1.x) + (player.y - p1.y) * (p2.y - p1.y)) / l2;
-    t = Math.max(0, Math.min(1, t));
+        const l2 = Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
+        if (l2 === 0) {
+            const dist2 = Math.pow(player.x - p1.x, 2) + Math.pow(player.y - p1.y, 2);
+            if (dist2 < playerRadius * playerRadius) {
+                handleCollision();
+                return; // Collision detected, no need to check other wings
+            }
+            continue; // Skip to next wing if line has zero length
+        }
 
-    const closestPoint = { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
-    const dist2 = Math.pow(player.x - closestPoint.x, 2) + Math.pow(player.y - closestPoint.y, 2);
+        let t = ((player.x - p1.x) * (p2.x - p1.x) + (player.y - p1.y) * (p2.y - p1.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
 
-    if (dist2 < playerRadius * playerRadius) {
-        handleCollision();
+        const closestPoint = { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
+        const dist2 = Math.pow(player.x - closestPoint.x, 2) + Math.pow(player.y - closestPoint.y, 2);
+
+        if (dist2 < playerRadius * playerRadius) {
+            handleCollision();
+            return; // Collision detected, no need to check other wings
+        }
     }
 }
 
