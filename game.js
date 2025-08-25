@@ -45,18 +45,17 @@ const obstacle = {
     length: 90,
     thickness: 10,
     angle: 0,
-    speed: 0.02,
     color: '#ff0000'
 };
 
-const rotationSpeeds = [
-    0,      // Index 0 (unused, or for a hypothetical stage 0)
-    0,      // Stage 1: No rotation
-    0,      // Stage 2: No rotation
-    0.03,   // Stage 3: Base speed (0.02) + (3-1)*0.005 = 0.03
-    0.035,  // Stage 4: Base speed (0.02) + (4-1)*0.005 = 0.035
-    0.04,   // Stage 5: Base speed (0.02) + (5-1)*0.005 = 0.04
-    0.045   // Stage 6: Base speed (0.02) + (6-1)*0.005 = 0.045
+const stageObstacles = [
+    { wings: 0, speed: 0 }, // Stage 0 (not used)
+    { wings: 0, speed: 0 }, // Stage 1
+    { wings: 2, speed: 0 }, // Stage 2
+    { wings: 2, speed: 0.03 }, // Stage 3
+    { wings: 3, speed: 0.035 }, // Stage 4
+    { wings: 4, speed: 0.04 }, // Stage 5
+    { wings: 4, speed: 0.045 }  // Stage 6
 ];
 
 // 키 입력 상태
@@ -121,12 +120,21 @@ function drawMap() {
 }
 
 function drawObstacle() {
-    if (stage < 2) return;
+    const stageConfig = stageObstacles[stage] || stageObstacles[0];
+    if (stageConfig.wings === 0) return;
+
     ctx.save();
     ctx.translate(obstacle.x, obstacle.y);
     ctx.rotate(obstacle.angle);
     ctx.fillStyle = obstacle.color;
-    ctx.fillRect(-obstacle.length / 2, -obstacle.thickness / 2, obstacle.length, obstacle.thickness);
+
+    for (let i = 0; i < stageConfig.wings; i++) {
+        ctx.save();
+        ctx.rotate((i * 2 * Math.PI) / stageConfig.wings);
+        ctx.fillRect(-obstacle.length / 2, -obstacle.thickness / 2, obstacle.length, obstacle.thickness);
+        ctx.restore();
+    }
+
     ctx.restore();
 }
 
@@ -160,12 +168,13 @@ function isPositionValid(x, y, size) {
 }
 
 function updateObstacle() {
-    if (stage < 2) return;
+    const stageConfig = stageObstacles[stage] || stageObstacles[0];
+    if (stageConfig.wings === 0) return;
+
     obstacle.x = map.centerX;
     obstacle.y = map.centerY;
 
-    let currentRotationSpeed = rotationSpeeds[stage] || 0; // Get speed from array, default to 0 if stage is out of bounds
-    obstacle.angle += currentRotationSpeed;
+    obstacle.angle += stageConfig.speed;
 }
 
 function checkCollision() {
