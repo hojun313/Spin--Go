@@ -111,30 +111,32 @@ function generateFinalCorridor() {
     map.corridors = [];
     const corridorWidth = 150;
     const corridorLength = 5000; // A very long corridor
+    const buffer = 1000; // Extra space behind the player to hide the corridor's start
 
     let corridor;
-    // The player starts at the beginning of the corridor, which is near the old map's center.
-    // We build the corridor extending away from the center based on the last exit direction.
+    // We build the corridor extending away from the center based on the last exit direction,
+    // adding a buffer behind the player's spawn point.
+    // Crucially, we only reset one of the player's coordinates, preserving their position within the corridor.
     switch(lastExitDirection) {
-        case 'n':
-            corridor = { x: map.centerX - corridorWidth / 2, y: map.centerY - corridorLength, width: corridorWidth, height: corridorLength };
-            player.x = map.centerX;
+        case 'n': // Moving up (negative y)
+            corridor = { x: map.centerX - corridorWidth / 2, y: map.centerY - corridorLength, width: corridorWidth, height: corridorLength + buffer };
+            // Preserve player.x, only change y
             player.y = map.centerY - 10;
             break;
-        case 's':
-            corridor = { x: map.centerX - corridorWidth / 2, y: map.centerY, width: corridorWidth, height: corridorLength };
-            player.x = map.centerX;
+        case 's': // Moving down (positive y)
+            corridor = { x: map.centerX - corridorWidth / 2, y: map.centerY - buffer, width: corridorWidth, height: corridorLength + buffer };
+            // Preserve player.x, only change y
             player.y = map.centerY + 10;
             break;
-        case 'w':
-            corridor = { x: map.centerX - corridorLength, y: map.centerY - corridorWidth / 2, width: corridorLength, height: corridorWidth };
+        case 'w': // Moving left (negative x)
+            corridor = { x: map.centerX - corridorLength, y: map.centerY - corridorWidth / 2, width: corridorLength + buffer, height: corridorWidth };
+            // Preserve player.y, only change x
             player.x = map.centerX - 10;
-            player.y = map.centerY;
             break;
-        case 'e':
-            corridor = { x: map.centerX, y: map.centerY - corridorWidth / 2, width: corridorLength, height: corridorWidth };
+        case 'e': // Moving right (positive x)
+            corridor = { x: map.centerX - buffer, y: map.centerY - corridorWidth / 2, width: corridorLength + buffer, height: corridorWidth };
+            // Preserve player.y, only change x
             player.x = map.centerX + 10;
-            player.y = map.centerY;
             break;
     }
     map.corridors.push(corridor);
