@@ -1,3 +1,11 @@
+// ==================================================
+// YOUR STORY HERE
+// ==================================================
+const storyContent = `
+Please write your story here. <br><br> You can use &lt;br&gt; for line breaks.
+`;
+// ==================================================
+
 // Spin & Go - Game Logic
 console.log("game.js loaded");
 
@@ -311,9 +319,9 @@ function checkStageCompletion() {
         const playerBottom = player.y + player.size / 2;
         if (playerRight > exit.x && playerLeft < exit.x + exit.width &&
             playerBottom > exit.y && playerTop < exit.y + exit.height) {
-            if (stage === 20) {
+            if (stage === 1) {
                 console.log("Final Stage Cleared! Entering ending sequence.");
-                stage++;
+                stage = 21;
                 finalTime = ((Date.now() - stageStartTime) / 1000).toFixed(2);
                 generateMap();
                 endingState = 1;
@@ -584,5 +592,27 @@ window.addEventListener('mouseup', (e) => {
     if (joystick.active) { stopJoystick(); }
 });
 
-console.log("Starting game loop");
-gameLoop();
+// --- Game Initialization & Startup ---
+document.addEventListener('DOMContentLoaded', () => {
+    const storyModal = document.getElementById('story-modal');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const storyText = document.getElementById('story-text');
+
+    // 1. Fill the story text into the modal.
+    if (storyText) {
+        storyText.innerHTML = storyContent;
+    }
+
+    // 2. Add a listener to the start button.
+    if (startGameBtn) {
+        startGameBtn.addEventListener('click', () => {
+            // 3. When clicked, hide the modal.
+            if (storyModal) {
+                storyModal.style.display = 'none';
+            }
+            // 4. And start the game loop.
+            console.log("Starting game loop");
+            gameLoop(); 
+        });
+    }
+});
