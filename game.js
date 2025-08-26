@@ -126,8 +126,8 @@ function generateFinalCorridor() {
     map.corridors = [];
     starfield = [];
     const corridorWidth = 150;
-    const corridorLength = 5000;
-    const buffer = 1000;
+    const corridorLength = 10000;
+    const buffer = 10000;
 
     let corridor;
     switch(lastExitDirection) {
