@@ -428,18 +428,25 @@ function drawEndingOverlay() {
         ctx.fillStyle = `rgba(255, 255, 255, ${whiteAlpha})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const textDelay = duration / 2;
+        const textDelay = duration / 2; // "...At last." 텍스트가 나타나기 시작하는 시간
         if (elapsed > textDelay) {
             const textElapsed = elapsed - textDelay;
             const textFadeDuration = duration / 2;
-            const textAlpha = Math.min(1, textElapsed / textFadeDuration);
+            const atLastAlpha = Math.min(1, textElapsed / textFadeDuration);
 
-            ctx.fillStyle = `rgba(0, 0, 0, ${textAlpha})`;
+            ctx.fillStyle = `rgba(0, 0, 0, ${atLastAlpha})`;
             ctx.font = '48px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText("...At last.", canvas.width / 2, canvas.height / 2 - 30);
 
-            if (textAlpha >= 1) {
+            // "...At last." 텍스트가 완전히 나타나면 Final Time을 서서히 표시
+            if (atLastAlpha >= 1) {
+                const finalTimeDelay = textDelay + textFadeDuration; // 첫 텍스트 애니메이션이 끝나는 시간
+                const finalTimeElapsed = elapsed - finalTimeDelay;
+                const finalTimeFadeDuration = 4000; // 4초에 걸쳐 나타남
+                const finalTimeAlpha = Math.min(1, finalTimeElapsed / finalTimeFadeDuration);
+
+                ctx.fillStyle = `rgba(0, 0, 0, ${finalTimeAlpha})`;
                 ctx.font = '24px sans-serif';
                 ctx.fillText(`Final Time: ${finalTime}`, canvas.width / 2, canvas.height / 2 + 30);
             }
