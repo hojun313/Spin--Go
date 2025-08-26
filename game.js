@@ -106,7 +106,47 @@ const joystick = {
     touchY: 0
 };
 
+function generateFinalCorridor() {
+    console.log("Generating the final corridor.");
+    map.corridors = [];
+    const corridorWidth = 150;
+    const corridorLength = 5000; // A very long corridor
+
+    let corridor;
+    // The player starts at the beginning of the corridor, which is near the old map's center.
+    // We build the corridor extending away from the center based on the last exit direction.
+    switch(lastExitDirection) {
+        case 'n':
+            corridor = { x: map.centerX - corridorWidth / 2, y: map.centerY - corridorLength, width: corridorWidth, height: corridorLength };
+            player.x = map.centerX;
+            player.y = map.centerY - 10;
+            break;
+        case 's':
+            corridor = { x: map.centerX - corridorWidth / 2, y: map.centerY, width: corridorWidth, height: corridorLength };
+            player.x = map.centerX;
+            player.y = map.centerY + 10;
+            break;
+        case 'w':
+            corridor = { x: map.centerX - corridorLength, y: map.centerY - corridorWidth / 2, width: corridorLength, height: corridorWidth };
+            player.x = map.centerX - 10;
+            player.y = map.centerY;
+            break;
+        case 'e':
+            corridor = { x: map.centerX, y: map.centerY - corridorWidth / 2, width: corridorLength, height: corridorWidth };
+            player.x = map.centerX + 10;
+            player.y = map.centerY;
+            break;
+    }
+    map.corridors.push(corridor);
+}
+
+
 function generateMap() {
+    if (stage === 21) {
+        generateFinalCorridor();
+        return;
+    }
+
     console.log(`[generateMap] Called for stage ${stage}`);
     map.corridors = [];
     const corridorWidth = 150;
@@ -152,6 +192,7 @@ function drawMap() {
 }
 
 function drawObstacle() {
+    if (stage >= 21) return; // No obstacles in the final corridor
     const stageConfig = stageObstacles[stage] || stageObstacles[0];
     if (stageConfig.wings === 0) return;
 
@@ -171,6 +212,8 @@ function drawObstacle() {
 }
 
 function drawHUD() {
+    if (endingState > 0) return; // Hide HUD during ending
+
     ctx.fillStyle = '#fff';
     ctx.font = '24px sans-serif';
 
@@ -206,6 +249,7 @@ function isPositionValid(x, y, size) {
 }
 
 function updateObstacle() {
+    if (stage >= 21) return;
     const stageConfig = stageObstacles[stage] || stageObstacles[0];
     if (stageConfig.wings === 0) return;
 
@@ -216,6 +260,7 @@ function updateObstacle() {
 }
 
 function checkCollision() {
+    if (stage >= 21) return;
     const stageConfig = stageObstacles[stage] || stageObstacles[0];
     if (stageConfig.wings === 0) return;
 
@@ -256,6 +301,7 @@ function checkCollision() {
 function handleCollision() {
     console.log("Collision! Resetting to Stage 1.");
     stage = 1;
+    endingState = 0; // Reset ending state
     stageStartTime = Date.now();
     map.centerX = 0;
     map.centerY = 0;
@@ -266,7 +312,7 @@ function handleCollision() {
 }
 
 function checkStageCompletion() {
-    if (endingState > 0) return; // Don't check for stage completion during ending
+    if (stage >= 21) return; // No more stages to complete
 
     const exit = map.corridors.find(c => c.isExit);
     if (exit) {
@@ -279,10 +325,12 @@ function checkStageCompletion() {
             playerBottom > exit.y && playerTop < exit.y + exit.height) {
             
             if (stage === 1) {
-                console.log("Final Stage Cleared! Entering ending sequence.");
-                endingState = 1;
-                endingStartTime = Date.now();
+                console.log("Final Stage Cleared! Generating final corridor.");
+                stage = 21; // Move to stage 21
                 finalTime = ((Date.now() - stageStartTime) / 1000).toFixed(2);
+                generateMap(); // This will now generate the final corridor
+                endingState = 1; // Start the visual ending sequence
+                endingStartTime = Date.now();
             } else {
                 console.log("Stage complete!");
                 stage++;
@@ -294,7 +342,7 @@ function checkStageCompletion() {
 
 
 function update() {
-    // Player movement
+    // Player movement is always active
     let nextX = player.x;
     let nextY = player.y;
 
@@ -303,19 +351,16 @@ function update() {
     if (keys.a) nextX -= player.speed;
     if (keys.d) nextX += player.speed;
 
-    if (endingState > 0) {
-        // In the ending, movement is free
+    // Collision with walls is always checked
+    if (isPositionValid(nextX, player.y, player.size)) {
         player.x = nextX;
+    }
+    if (isPositionValid(player.x, nextY, player.size)) {
         player.y = nextY;
-    } else {
-        // During the game, movement is restricted to corridors
-        if (isPositionValid(nextX, player.y, player.size)) {
-            player.x = nextX;
-        }
-        if (isPositionValid(player.x, nextY, player.size)) {
-            player.y = nextY;
-        }
+    }
 
+    // Game logic only runs if not in the ending sequence
+    if (endingState === 0) {
         updateObstacle();
         checkCollision();
         checkStageCompletion();
@@ -323,6 +368,10 @@ function update() {
 }
 
 function drawJoystick() {
+    if (endingState > 0) {
+        joystickCtx.clearRect(0, 0, joystickCanvas.width, joystickCanvas.height);
+        return;
+    }
     if (!joystick.active) return;
 
     joystickCtx.clearRect(0, 0, joystickCanvas.width, joystickCanvas.height);
@@ -359,7 +408,6 @@ function drawEndingOverlay() {
     const fadeToWhiteDuration = duration / 2; // 4 seconds
     const whiteAlpha = Math.min(1, elapsed / fadeToWhiteDuration);
     
-    // The overlay is drawn on top of the game world
     ctx.fillStyle = `rgba(255, 255, 255, ${whiteAlpha})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -387,28 +435,26 @@ function drawEndingOverlay() {
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // The camera always follows the player, even in the ending void
+    // --- World-space drawing (affected by camera) ---
     ctx.save();
     ctx.translate(canvas.width / 2 - player.x, canvas.height / 2 - player.y);
 
-    // Draw game world only if not in ending sequence
-    if (endingState === 0) {
-        drawMap();
-        drawObstacle();
-    }
+    drawMap();
+    drawObstacle();
     drawPlayer();
 
     ctx.restore();
+    // --- End of World-space drawing ---
 
-    // Draw UI elements on top of everything
-    if (endingState === 0) {
-        drawHUD();
-    } else {
-        // This is drawn on top of the translated world, as a screen overlay
+
+    // --- Screen-space drawing (not affected by camera) ---
+    drawHUD(); // Will do nothing if endingState > 0
+    
+    if (endingState > 0) {
         drawEndingOverlay();
     }
     
-    drawJoystick();
+    drawJoystick(); // Will do nothing if endingState > 0
 
     update();
     requestAnimationFrame(gameLoop);
@@ -469,8 +515,7 @@ function handleJoystickMove(x, y) {
             keys.w = true;
         } else if (angle > Math.PI * 0.25 && angle < Math.PI * 0.75) {
             keys.s = true;
-        }
-        if (angle > Math.PI * 0.75 || angle < -Math.PI * 0.75) {
+        } else if (angle > Math.PI * 0.75 || angle < -Math.PI * 0.75) {
             keys.a = true;
         } else if (angle < Math.PI * 0.25 && angle > -Math.PI * 0.25) {
             keys.d = true;
