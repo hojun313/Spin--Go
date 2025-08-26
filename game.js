@@ -311,9 +311,9 @@ function checkStageCompletion() {
         const playerBottom = player.y + player.size / 2;
         if (playerRight > exit.x && playerLeft < exit.x + exit.width &&
             playerBottom > exit.y && playerTop < exit.y + exit.height) {
-            if (stage === 2) {
+            if (stage === 20) {
                 console.log("Final Stage Cleared! Entering ending sequence.");
-                stage = 21;
+                stage++;
                 finalTime = ((Date.now() - stageStartTime) / 1000).toFixed(2);
                 generateMap();
                 endingState = 1;
