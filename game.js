@@ -449,6 +449,12 @@ function drawEndingOverlay() {
                 ctx.fillStyle = `rgba(0, 0, 0, ${finalTimeAlpha})`;
                 ctx.font = '24px sans-serif';
                 ctx.fillText(`Time Trapped: ${finalTime}`, canvas.width / 2, canvas.height / 2 + 30);
+
+                if (finalTimeAlpha >= 1) {
+                    ctx.fillStyle = 'red';
+                    ctx.font = '40px sans-serif';
+                    ctx.fillText("Refresh to re-experience...", canvas.width / 2, canvas.height / 2 + 180);
+                }
             }
         }
     }
