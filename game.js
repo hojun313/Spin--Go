@@ -17,6 +17,9 @@ joystickCanvas.height = 600;
 let stage = 1;
 let stageStartTime = Date.now();
 let lastExitDirection = null;
+let endingState = 0; // 0: not ending, 1: ending sequence active
+let endingStartTime = 0;
+let finalTime = 0;
 
 
 
@@ -263,6 +266,8 @@ function handleCollision() {
 }
 
 function checkStageCompletion() {
+    if (endingState > 0) return; // Don't check for stage completion during ending
+
     const exit = map.corridors.find(c => c.isExit);
     if (exit) {
         const playerLeft = player.x - player.size / 2;
@@ -273,16 +278,23 @@ function checkStageCompletion() {
         if (playerRight > exit.x && playerLeft < exit.x + exit.width &&
             playerBottom > exit.y && playerTop < exit.y + exit.height) {
             
-            console.log("Stage complete!");
-            stage++;
-            
-            generateMap();
+            if (stage === 1) {
+                console.log("Final Stage Cleared! Entering ending sequence.");
+                endingState = 1;
+                endingStartTime = Date.now();
+                finalTime = ((Date.now() - stageStartTime) / 1000).toFixed(2);
+            } else {
+                console.log("Stage complete!");
+                stage++;
+                generateMap();
+            }
         }
     }
 }
 
 
 function update() {
+    // Player movement
     let nextX = player.x;
     let nextY = player.y;
 
@@ -291,16 +303,23 @@ function update() {
     if (keys.a) nextX -= player.speed;
     if (keys.d) nextX += player.speed;
 
-    if (isPositionValid(nextX, player.y, player.size)) {
+    if (endingState > 0) {
+        // In the ending, movement is free
         player.x = nextX;
-    }
-    if (isPositionValid(player.x, nextY, player.size)) {
         player.y = nextY;
-    }
+    } else {
+        // During the game, movement is restricted to corridors
+        if (isPositionValid(nextX, player.y, player.size)) {
+            player.x = nextX;
+        }
+        if (isPositionValid(player.x, nextY, player.size)) {
+            player.y = nextY;
+        }
 
-    updateObstacle();
-    checkCollision();
-    checkStageCompletion();
+        updateObstacle();
+        checkCollision();
+        checkStageCompletion();
+    }
 }
 
 function drawJoystick() {
@@ -332,19 +351,63 @@ function drawJoystick() {
     joystickCtx.fill();
 }
 
+function drawEndingOverlay() {
+    const elapsed = Date.now() - endingStartTime;
+    const duration = 8000; // 8 seconds total
+
+    // --- White Fade-in ---
+    const fadeToWhiteDuration = duration / 2; // 4 seconds
+    const whiteAlpha = Math.min(1, elapsed / fadeToWhiteDuration);
+    
+    // The overlay is drawn on top of the game world
+    ctx.fillStyle = `rgba(255, 255, 255, ${whiteAlpha})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // --- Text Fade-in ---
+    const textDelay = duration / 2;
+    if (elapsed > textDelay) {
+        const textElapsed = elapsed - textDelay;
+        const textFadeDuration = duration / 2;
+        const textAlpha = Math.min(1, textElapsed / textFadeDuration);
+
+        // Black text for contrast on the white background
+        ctx.fillStyle = `rgba(0, 0, 0, ${textAlpha})`;
+        ctx.font = '48px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText("...At last.", canvas.width / 2, canvas.height / 2 - 30);
+
+        if (textAlpha >= 1) {
+            ctx.font = '24px sans-serif';
+            ctx.fillText(`Final Time: ${finalTime}`, canvas.width / 2, canvas.height / 2 + 30);
+        }
+    }
+}
+
 
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // The camera always follows the player, even in the ending void
     ctx.save();
     ctx.translate(canvas.width / 2 - player.x, canvas.height / 2 - player.y);
 
-    drawMap();
-    drawObstacle();
+    // Draw game world only if not in ending sequence
+    if (endingState === 0) {
+        drawMap();
+        drawObstacle();
+    }
     drawPlayer();
 
     ctx.restore();
 
-    drawHUD();
+    // Draw UI elements on top of everything
+    if (endingState === 0) {
+        drawHUD();
+    } else {
+        // This is drawn on top of the translated world, as a screen overlay
+        drawEndingOverlay();
+    }
+    
     drawJoystick();
 
     update();
