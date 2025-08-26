@@ -448,7 +448,7 @@ function drawEndingOverlay() {
 
                 ctx.fillStyle = `rgba(0, 0, 0, ${finalTimeAlpha})`;
                 ctx.font = '24px sans-serif';
-                ctx.fillText(`Final Time: ${finalTime}`, canvas.width / 2, canvas.height / 2 + 30);
+                ctx.fillText(`Time Trapped: ${finalTime}`, canvas.width / 2, canvas.height / 2 + 30);
             }
         }
     }
