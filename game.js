@@ -19,14 +19,16 @@ const normalColors = {
     corridor: '#444',
     player: '#00ff00',
     exit: '#0077ff',
-    obstacle: '#ff0000'
+    obstacle: '#ff0000',
+    star: '#fff'
 };
 const invertedColors = {
     background: '#fff',
     corridor: '#AAA',
     player: '#ff00ff',
     exit: '#ff8800',
-    obstacle: '#00ffff'
+    obstacle: '#00ffff',
+    star: '#000'
 };
 let colorScheme = { ...normalColors };
 
@@ -38,7 +40,7 @@ let lastExitDirection = null;
 let endingState = 0; 
 let endingStartTime = 0;
 let finalTime = 0;
-
+let starfield = [];
 
 
 // 맵 설정
@@ -104,6 +106,7 @@ const joystick = {
 function generateFinalCorridor() {
     console.log("Generating the final corridor.");
     map.corridors = [];
+    starfield = [];
     const corridorWidth = 150;
     const corridorLength = 5000;
     const buffer = 1000;
@@ -128,6 +131,28 @@ function generateFinalCorridor() {
             break;
     }
     map.corridors.push(corridor);
+
+    // Generate starfield on the "walls" next to the corridor
+    const wallWidth = 1000; // How wide the starfield on each side is
+    for (let i = 0; i < 2000; i++) {
+        let x, y;
+        if (lastExitDirection === 'n' || lastExitDirection === 's') {
+            // Vertical corridor, stars on left/right walls
+            const side = Math.random() < 0.5 ? -1 : 1;
+            x = corridor.x + (side * Math.random() * wallWidth) + (side < 0 ? 0 : corridor.width);
+            y = corridor.y + Math.random() * corridor.height;
+        } else {
+            // Horizontal corridor, stars on top/bottom walls
+            const side = Math.random() < 0.5 ? -1 : 1;
+            x = corridor.x + Math.random() * corridor.width;
+            y = corridor.y + (side * Math.random() * wallWidth) + (side < 0 ? 0 : corridor.height);
+        }
+        starfield.push({
+            x: x,
+            y: y,
+            size: Math.random() * 2 + 1
+        });
+    }
 }
 
 function generateMap() {
@@ -168,6 +193,15 @@ function drawMap() {
     map.corridors.forEach(corridor => {
         ctx.fillStyle = corridor.isExit ? colorScheme.exit : colorScheme.corridor;
         ctx.fillRect(corridor.x, corridor.y, corridor.width, corridor.height);
+    });
+}
+
+function drawStarfield() {
+    // Stars only appear after the blue flash, in the inverted world
+    if (endingState < 2) return;
+    ctx.fillStyle = colorScheme.star;
+    starfield.forEach(star => {
+        ctx.fillRect(star.x, star.y, star.size, star.size);
     });
 }
 
@@ -257,6 +291,7 @@ function handleCollision() {
     stage = 1;
     endingState = 0;
     colorScheme = { ...normalColors }; // Reset colors on collision
+    starfield = []; // Clear stars
     stageStartTime = Date.now();
     map.centerX = 0;
     map.centerY = 0;
@@ -276,7 +311,7 @@ function checkStageCompletion() {
         const playerBottom = player.y + player.size / 2;
         if (playerRight > exit.x && playerLeft < exit.x + exit.width &&
             playerBottom > exit.y && playerTop < exit.y + exit.height) {
-            if (stage === 5) {
+            if (stage === 2) {
                 console.log("Final Stage Cleared! Entering ending sequence.");
                 stage = 21;
                 finalTime = ((Date.now() - stageStartTime) / 1000).toFixed(2);
@@ -293,25 +328,23 @@ function checkStageCompletion() {
 }
 
 function update() {
-    // Player movement is always active, except during the blue flash
-    if (endingState === 1) {
-        // Freeze player during flash
-    } else {
-        let nextX = player.x;
-        let nextY = player.y;
-        if (keys.w) nextY -= player.speed;
-        if (keys.s) nextY += player.speed;
-        if (keys.a) nextX -= player.speed;
-        if (keys.d) nextX += player.speed;
+    // Player movement is always active, even during the ending sequence
+    let nextX = player.x;
+    let nextY = player.y;
 
-        if (isPositionValid(nextX, player.y, player.size)) {
-            player.x = nextX;
-        }
-        if (isPositionValid(player.x, nextY, player.size)) {
-            player.y = nextY;
-        }
+    if (keys.w) nextY -= player.speed;
+    if (keys.s) nextY += player.speed;
+    if (keys.a) nextX -= player.speed;
+    if (keys.d) nextX += player.speed;
+
+    if (isPositionValid(nextX, player.y, player.size)) {
+        player.x = nextX;
+    }
+    if (isPositionValid(player.x, nextY, player.size)) {
+        player.y = nextY;
     }
 
+    // Game logic only runs if not in the ending sequence
     if (endingState === 0) {
         updateObstacle();
         checkCollision();
@@ -423,6 +456,7 @@ function gameLoop() {
     ctx.save();
     ctx.translate(canvas.width / 2 - player.x, canvas.height / 2 - player.y);
     drawMap();
+    drawStarfield();
     drawObstacle();
     drawPlayer();
     ctx.restore();
