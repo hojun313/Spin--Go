@@ -2,7 +2,17 @@
 // YOUR STORY HERE
 // ==================================================
 const storyContent = `
-Please write your story here. <br><br> You can use &lt;br&gt; for line breaks.
+이 게임을 시작해주셔서 감사합니다.
+<br><br>
+처음 이 게임을 구상했을 때, 저는 낯선 공간에서 눈을 뜬 주인공이 되어 미스터리를 파헤치는 이야기를 상상했습니다. 막힌 벽을 더듬다 특정 조건을 만족시키면 방의 형태가 변하고, 그 변화의 끝에서 마침내 탈출의 실마리를 찾는, 그런 긴장감 넘치는 경험을 만들고 싶었죠.
+<br><br>
+하지만 여러 문제로 인해 이 아이디어는 아쉽게도 완성되지 못했습니다. 지금 여러분이 플레이하실 버전은, 그 초기의 아이디어가 담긴 데모 버전에 가깝습니다.
+<br><br>
+스토리는 미완성일지라도 '게임은 게임이다'라는 생각이 들었습니다. 비록 짧은 경험이겠지만, 이 미완의 공간에 담겨있던 작은 재미를 여러분과 나누고 싶어 이렇게 세상에 내놓습니다.
+<br><br>
+튜토리얼은 없습니다만 숨겨진 조작 방법이 하나 있습니다. 이는 모바일 환경에서 사용이 어려우니 양해 부탁드립니다.
+<br><br>
+부디 즐겁게 플레이해주시길 바랍니다.
 `;
 // ==================================================
 
@@ -319,7 +329,7 @@ function checkStageCompletion() {
         const playerBottom = player.y + player.size / 2;
         if (playerRight > exit.x && playerLeft < exit.x + exit.width &&
             playerBottom > exit.y && playerTop < exit.y + exit.height) {
-            if (stage === 1) {
+            if (stage === 20) {
                 console.log("Final Stage Cleared! Entering ending sequence.");
                 stage = 21;
                 finalTime = ((Date.now() - stageStartTime) / 1000).toFixed(2);
